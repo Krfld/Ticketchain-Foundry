@@ -24,7 +24,7 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
     Structs.TicketchainConfig private _ticketchainConfig;
     Structs.NFTConfig private _nftConfig;
     Structs.EventConfig private _eventConfig;
-    Structs.Package[] private _packages;
+    Structs.Package private _packages; //! change back to array
     EnumerableSet.AddressSet private _admins;
     EnumerableSet.AddressSet private _validators;
 
@@ -66,11 +66,16 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
 
     /* constructor */
 
-    constructor(address owner, Structs.Percentage memory feePercentage, Structs.NFTConfig memory nftConfig)
-        Ownable(owner)
-        ERC721(nftConfig.name, nftConfig.symbol)
-    {
+    constructor(
+        address owner,
+        Structs.Percentage memory feePercentage,
+        Structs.EventConfig memory eventConfig,
+        Structs.Package memory packages,
+        Structs.NFTConfig memory nftConfig
+    ) Ownable(owner) ERC721(nftConfig.name, nftConfig.symbol) {
         _ticketchainConfig = Structs.TicketchainConfig(_msgSender(), feePercentage);
+        _setEventConfig(eventConfig);
+        _packages = packages;
         _nftConfig = nftConfig;
     }
 
@@ -126,17 +131,17 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
         payable(owner()).sendValue(profit);
     }
 
-    function deployTickets(address to, Structs.Package[] memory packages) external onlyAdmins {
-        for (uint256 i; i < packages.length; i++) {
-            uint256 totalSupply = getTicketsSupply();
+    // function deployTickets(address to, Structs.Package[] memory packages) external onlyAdmins {
+    //     for (uint256 i; i < packages.length; i++) {
+    //         uint256 totalSupply = getTicketsSupply();
 
-            for (uint256 j; j < packages[i].supply; j++) {
-                _safeMint(to, totalSupply + j);
-            }
+    //         for (uint256 j; j < packages[i].supply; j++) {
+    //             _safeMint(to, totalSupply + j);
+    //         }
 
-            _packages.push(packages[i]);
-        }
-    }
+    //         _packages.push(packages[i]);
+    //     }
+    // }
 
     function cancelEvent() external onlyAdmins {
         _eventCanceled = true;
@@ -235,31 +240,31 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
 
     function getTicketsSupply() public view returns (uint256) {
         uint256 totalSupply;
-        for (uint256 i; i < _packages.length; i++) {
-            totalSupply += _packages[i].supply;
+        for (uint256 i; i < 1; /*_packages.length*/ i++) {
+            totalSupply += _packages /*[i]*/ .supply;
         }
         return totalSupply;
     }
 
-    function getTicketPackageId(uint256 ticket) public view returns (uint256) {
+    function getTicketPackageIndex(uint256 ticket) public view returns (uint256) {
         uint256 totalSupply;
-        for (uint256 i; i < _packages.length; i++) {
-            totalSupply += _packages[i].supply;
+        for (uint256 i; i < 1; /*_packages.length*/ i++) {
+            totalSupply += _packages /*[i]*/ .supply;
             if (ticket < totalSupply) return i;
         }
         revert TicketDoesNotExist(ticket);
     }
 
     function getTicketPrice(uint256 ticket) public view returns (uint256) {
-        return _packages[getTicketPackageId(ticket)].price;
+        return _packages /*[i]*/ .price; // [getTicketPackageIndex(ticket)].price;
     }
 
     /* NFTs */
 
     function tokenURI(uint256 ticket) public view override returns (string memory) {
-        uint256 packageId = getTicketPackageId(ticket);
+        uint256 packageId = getTicketPackageIndex(ticket);
         return string.concat(
-            _baseURI(), packageId.toString(), "/", _packages[packageId].individualNfts ? ticket.toString() : "", ".json"
+            _baseURI(), packageId.toString(), "/", _packages /*[i]*/ .individualNfts ? ticket.toString() : "", ".json"
         );
     }
 
@@ -279,23 +284,23 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
 
     /* packages */
 
-    function addPackages(Structs.Package[] memory packages) external onlyAdmins {
-        //todo verify if package already exists (maybe remove id from struct)
-        for (uint256 i; i < packages.length; i++) {
-            _packages.push(packages[i]);
-        }
+    function setPackages(Structs.Package /*[]*/ memory packages) internal {
+        // if (packages.length == 0) revert InvalidInputs();
+
+        _packages = packages;
     }
 
-    function getPackages() external view returns (Structs.Package[] memory) {
+    function getPackages() external view returns (Structs.Package /*[]*/ memory) {
         return _packages;
     }
 
     /* eventConfig */
 
-    function setEventConfig(Structs.EventConfig memory eventConfig) external onlyAdmins {
-        if (eventConfig.onlineDate > eventConfig.noRefundDate || eventConfig.noRefundDate > eventConfig.offlineDate) {
-            revert InvalidInputs();
-        }
+    function _setEventConfig(Structs.EventConfig memory eventConfig) internal {
+        if (
+            block.timestamp > eventConfig.onlineDate || eventConfig.onlineDate > eventConfig.noRefundDate
+                || eventConfig.noRefundDate > eventConfig.offlineDate
+        ) revert InvalidInputs();
 
         _eventConfig = eventConfig;
     }
