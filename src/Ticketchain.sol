@@ -28,6 +28,8 @@ contract Ticketchain is Ownable(msg.sender) {
     error NotOrganizer();
     error NoEvent();
 
+    /* constructor */
+
     /* modifiers */
 
     modifier onlyOrganizers() {

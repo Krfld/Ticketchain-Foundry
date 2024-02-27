@@ -20,6 +20,8 @@ library Structs {
     }
 
     struct Package {
+        string name;
+        string description;
         uint256 price;
         uint256 supply;
         bool individualNfts;
