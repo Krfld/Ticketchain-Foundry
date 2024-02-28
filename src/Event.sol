@@ -24,7 +24,7 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
     Structs.TicketchainConfig private _ticketchainConfig;
     Structs.NFTConfig private _nftConfig;
     Structs.EventConfig private _eventConfig;
-    Structs.Package private _packages; //! change back to array
+    Structs.Package[] private _packages;
     EnumerableSet.AddressSet private _admins;
     EnumerableSet.AddressSet private _validators;
 
@@ -70,12 +70,15 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
         address owner,
         Structs.Percentage memory feePercentage,
         Structs.EventConfig memory eventConfig,
-        Structs.Package memory packages,
+        // Structs.Package[] memory packages,
         Structs.NFTConfig memory nftConfig
     ) Ownable(owner) ERC721(nftConfig.name, nftConfig.symbol) {
         _ticketchainConfig = Structs.TicketchainConfig(_msgSender(), feePercentage);
         _setEventConfig(eventConfig);
-        _packages = packages;
+        // _packages = packages; //! change back
+        _packages.push(Structs.Package("Package1", "P1", 100, 100, false));
+        _packages.push(Structs.Package("Package2", "P2", 200, 200, true));
+        _packages.push(Structs.Package("Package3", "P3", 300, 300, false));
         _nftConfig = nftConfig;
     }
 
@@ -240,23 +243,23 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
 
     function getTicketsSupply() public view returns (uint256) {
         uint256 totalSupply;
-        for (uint256 i; i < 1; /*_packages.length*/ i++) {
-            totalSupply += _packages /*[i]*/ .supply;
+        for (uint256 i; i < _packages.length; i++) {
+            totalSupply += _packages[i].supply;
         }
         return totalSupply;
     }
 
     function getTicketPackageIndex(uint256 ticket) public view returns (uint256) {
         uint256 totalSupply;
-        for (uint256 i; i < 1; /*_packages.length*/ i++) {
-            totalSupply += _packages /*[i]*/ .supply;
+        for (uint256 i; i < _packages.length; i++) {
+            totalSupply += _packages[i].supply;
             if (ticket < totalSupply) return i;
         }
         revert TicketDoesNotExist(ticket);
     }
 
     function getTicketPrice(uint256 ticket) public view returns (uint256) {
-        return _packages /*[i]*/ .price; // [getTicketPackageIndex(ticket)].price;
+        return _packages[getTicketPackageIndex(ticket)].price;
     }
 
     /* NFTs */
@@ -264,7 +267,7 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
     function tokenURI(uint256 ticket) public view override returns (string memory) {
         uint256 packageId = getTicketPackageIndex(ticket);
         return string.concat(
-            _baseURI(), packageId.toString(), "/", _packages /*[i]*/ .individualNfts ? ticket.toString() : "", ".json"
+            _baseURI(), packageId.toString(), "/", _packages[ticket].individualNfts ? ticket.toString() : "", ".json"
         );
     }
 
@@ -284,13 +287,13 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
 
     /* packages */
 
-    function setPackages(Structs.Package /*[]*/ memory packages) internal {
-        // if (packages.length == 0) revert InvalidInputs();
+    function setPackages(Structs.Package[] memory packages) internal {
+        if (packages.length == 0) revert InvalidInputs();
 
         _packages = packages;
     }
 
-    function getPackages() external view returns (Structs.Package /*[]*/ memory) {
+    function getPackages() external view returns (Structs.Package[] memory) {
         return _packages;
     }
 

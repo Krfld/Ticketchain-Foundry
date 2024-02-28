@@ -51,10 +51,10 @@ contract Ticketchain is Ownable(msg.sender) {
 
     function registerEvent(
         Structs.EventConfig memory eventConfig,
-        Structs.Package memory packages,
+        // Structs.Package memory packages,
         Structs.NFTConfig memory nftConfig
     ) external onlyOrganizers {
-        address eventAddress = address(new Event(msg.sender, _feePercentage, eventConfig, packages, nftConfig));
+        address eventAddress = address(new Event(msg.sender, _feePercentage, eventConfig, /*packages,*/ nftConfig));
         _events.add(eventAddress);
 
         emit EventRegistered(msg.sender, eventAddress);
