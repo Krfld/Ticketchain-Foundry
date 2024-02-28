@@ -2,14 +2,22 @@
 pragma solidity 0.8.24;
 
 import {Test, console} from "forge-std/Test.sol";
-import {Ticketchain} from "../src/Ticketchain.sol";
+import "../src/Ticketchain.sol";
+import "../src/Event.sol";
+import "../src/Structs.sol";
 
 contract TicketchainTest is Test {
     Ticketchain public ticketchain;
 
-    function setUp() public {}
+    address me = address(1);
 
-    function test_Name() public {}
-
-    function testFuzz_Name(uint256 x) public {}
+    function setUp() public {
+        vm.startPrank(me);
+        ticketchain = new Ticketchain();
+        ticketchain.addOrganizer(me);
+        ticketchain.registerEvent(
+            Structs.EventConfig(1735689600, 1767225600, 1759273200, Structs.Percentage(50, 2)),
+            Structs.NFTConfig("Event1", "E1", "https://example.com")
+        );
+    }
 }
