@@ -22,6 +22,7 @@ contract Ticketchain is Ownable(msg.sender) {
     /* events */
 
     event EventRegistered(address indexed organizer, address indexed eventAddress);
+    //todo add event for event removed
 
     /* errors */
 
