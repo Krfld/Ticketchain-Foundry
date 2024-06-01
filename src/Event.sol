@@ -89,7 +89,7 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
     }
 
     modifier onlyAdmins() {
-        if (!_admins.contains(_msgSender())) {
+        if (!_admins.contains(_msgSender()) && _msgSender() != owner()) {
             revert NotAdmin();
         }
         _;
@@ -209,11 +209,13 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
         for (uint256 i; i < tickets.length; i++) {
             uint256 ticket = tickets[i];
 
-            // check if ticket is validated
-            if (!_eventCanceled) _checkTicketValidated(ticket);
+            if (!_eventCanceled) {
+                // check if ticket is validated
+                _checkTicketValidated(ticket);
 
-            // burn ticket from user
-            _update(address(0), ticket, _msgSender());
+                // burn ticket from user
+                _update(address(0), ticket, _msgSender());
+            }
 
             // calculate refund
             Structs.Percentage memory refundPercentage =
@@ -283,6 +285,21 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
         return _ticketchainConfig;
     }
 
+    /* eventConfig */
+
+    function _setEventConfig(Structs.EventConfig memory eventConfig) internal {
+        if (
+            block.timestamp > eventConfig.onlineDate || eventConfig.onlineDate > eventConfig.noRefundDate
+                || eventConfig.noRefundDate > eventConfig.offlineDate
+        ) revert InvalidInputs();
+
+        _eventConfig = eventConfig;
+    }
+
+    function getEventConfig() external view returns (Structs.EventConfig memory) {
+        return _eventConfig;
+    }
+
     /* packages */
 
     // function setPackages(Structs.Package[] memory packages) internal {
@@ -303,19 +320,14 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
         return _packages;
     }
 
-    /* eventConfig */
+    /* nftConfig */
 
-    function _setEventConfig(Structs.EventConfig memory eventConfig) internal {
-        if (
-            block.timestamp > eventConfig.onlineDate || eventConfig.onlineDate > eventConfig.noRefundDate
-                || eventConfig.noRefundDate > eventConfig.offlineDate
-        ) revert InvalidInputs();
-
-        _eventConfig = eventConfig;
+    function setNFTConfigBaseURI(string memory baseURI) external onlyAdmins {
+        _nftConfig.baseURI = baseURI;
     }
 
-    function getEventConfig() external view returns (Structs.EventConfig memory) {
-        return _eventConfig;
+    function getNFTConfig() external view returns (Structs.NFTConfig memory) {
+        return _nftConfig;
     }
 
     /* admins */
@@ -387,20 +399,20 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
         override(ERC721, ERC721Enumerable)
         returns (address)
     {
-        // if (_eventCanceled) revert EventCanceled(); //! allow if refunding
+        if (_eventCanceled) revert EventCanceled();
 
         // revert if trying to transfer inside of contract when event has not started
-        if (block.timestamp < _eventConfig.onlineDate && _internalTransfer) {
+        if (_internalTransfer && block.timestamp < _eventConfig.onlineDate) {
             revert EventNotOnline();
         }
 
         // revert if trying to transfer outside of contract when event has not ended
-        if (block.timestamp < _eventConfig.offlineDate && !_internalTransfer) {
+        if (!_internalTransfer && block.timestamp < _eventConfig.offlineDate) {
             revert EventNotOffline();
         }
 
         // revert if trying to transfer inside of contract when event has ended
-        if (block.timestamp >= _eventConfig.offlineDate && _internalTransfer) {
+        if (_internalTransfer && block.timestamp >= _eventConfig.offlineDate) {
             revert EventOffline();
         }
 
