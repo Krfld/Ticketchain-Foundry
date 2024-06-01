@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.24;
+pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/access/Ownable.sol";
+import "@openzeppelin/utils/structs/EnumerableSet.sol";
+import "@openzeppelin/utils/Address.sol";
+import "@openzeppelin/utils/Strings.sol";
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@openzeppelin/token/ERC721/ERC721.sol";
+import "@openzeppelin/token/ERC721/extensions/ERC721Enumerable.sol";
 
 import "./Structs.sol";
 
@@ -76,9 +76,6 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
         _ticketchainConfig = Structs.TicketchainConfig(_msgSender(), feePercentage);
         _setEventConfig(eventConfig);
         // _packages = packages; //! change back
-        _packages.push(Structs.Package("Package1", "P1", 100, 100, false));
-        _packages.push(Structs.Package("Package2", "P2", 200, 200, true));
-        _packages.push(Structs.Package("Package3", "P3", 300, 300, false));
         _nftConfig = nftConfig;
     }
 
@@ -92,7 +89,7 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
     }
 
     modifier onlyAdmins() {
-        if (!_admins.contains(_msgSender()) && _msgSender() != owner()) {
+        if (!_admins.contains(_msgSender())) {
             revert NotAdmin();
         }
         _;
@@ -122,7 +119,7 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
         payable(_ticketchainConfig.ticketchainAddress).sendValue(fees);
     }
 
-    /* owner */
+    /* admins */
 
     function withdrawProfit() external onlyAdmins {
         if (block.timestamp < _eventConfig.offlineDate) {
@@ -249,7 +246,7 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
         return totalSupply;
     }
 
-    function getTicketPackageIndex(uint256 ticket) public view returns (uint256) {
+    function getTicketPackageId(uint256 ticket) public view returns (uint256) {
         uint256 totalSupply;
         for (uint256 i; i < _packages.length; i++) {
             totalSupply += _packages[i].supply;
@@ -259,16 +256,17 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
     }
 
     function getTicketPrice(uint256 ticket) public view returns (uint256) {
-        return _packages[getTicketPackageIndex(ticket)].price;
+        return _packages[getTicketPackageId(ticket)].price;
     }
 
     /* NFTs */
 
     function tokenURI(uint256 ticket) public view override returns (string memory) {
-        uint256 packageId = getTicketPackageIndex(ticket);
-        return string.concat(
-            _baseURI(), packageId.toString(), "/", _packages[ticket].individualNfts ? ticket.toString() : "", ".json"
-        );
+        uint256 packageId = getTicketPackageId(ticket);
+
+        string memory ticketPath = !_packages[packageId].individualNfts ? "" : string.concat("/", ticket.toString());
+
+        return string.concat(_baseURI(), packageId.toString(), ticketPath, ".json");
     }
 
     function _baseURI() internal view override returns (string memory) {
@@ -287,10 +285,18 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
 
     /* packages */
 
-    function setPackages(Structs.Package[] memory packages) internal {
-        if (packages.length == 0) revert InvalidInputs();
+    // function setPackages(Structs.Package[] memory packages) internal {
+    //     if (packages.length == 0) revert InvalidInputs();
 
-        _packages = packages;
+    //     _packages = packages;
+    // }
+
+    function addPackage(Structs.Package memory package) external onlyAdmins {
+        _packages.push(package);
+    }
+
+    function getTicketPackage(uint256 ticket) external view returns (Structs.Package memory) {
+        return _packages[getTicketPackageId(ticket)];
     }
 
     function getPackages() external view returns (Structs.Package[] memory) {

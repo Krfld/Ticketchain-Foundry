@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.24;
+pragma solidity ^0.8.0;
 
 import {Test, console} from "forge-std/Test.sol";
 import "../src/Ticketchain.sol";
@@ -16,7 +16,7 @@ contract TicketchainTest is Test {
         ticketchain = new Ticketchain();
         ticketchain.addOrganizer(me);
         ticketchain.registerEvent(
-            Structs.EventConfig(1735689600, 1767225600, 1759273200, Structs.Percentage(50, 2)),
+            Structs.EventConfig(1735689600, 1767225600, 1759273200, Structs.Percentage(50, 0)),
             Structs.NFTConfig("Event1", "E1", "https://example.com")
         );
     }

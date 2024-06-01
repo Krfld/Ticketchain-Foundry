@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.24;
+pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
-import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import "@openzeppelin/access/Ownable.sol";
+import "@openzeppelin/utils/Address.sol";
+import "@openzeppelin/utils/structs/EnumerableSet.sol";
 
 import "./Event.sol";
 import "./Structs.sol";
@@ -34,7 +34,7 @@ contract Ticketchain is Ownable(msg.sender) {
     /* modifiers */
 
     modifier onlyOrganizers() {
-        if (!_organizers.contains(msg.sender)) revert NotOrganizer();
+        if (!_organizers.contains(_msgSender())) revert NotOrganizer();
         _;
     }
 
@@ -54,11 +54,13 @@ contract Ticketchain is Ownable(msg.sender) {
         Structs.EventConfig memory eventConfig,
         // Structs.Package memory packages,
         Structs.NFTConfig memory nftConfig
-    ) external onlyOrganizers {
-        address eventAddress = address(new Event(msg.sender, _feePercentage, eventConfig, /*packages,*/ nftConfig));
+    ) external onlyOrganizers returns (address) {
+        address eventAddress = address(new Event(_msgSender(), _feePercentage, eventConfig, /*packages,*/ nftConfig));
         _events.add(eventAddress);
 
-        emit EventRegistered(msg.sender, eventAddress);
+        emit EventRegistered(_msgSender(), eventAddress);
+
+        return eventAddress;
     }
 
     /* organizers */
