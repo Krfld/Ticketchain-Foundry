@@ -289,8 +289,10 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
 
     function _setEventConfig(Structs.EventConfig memory eventConfig) internal {
         if (
-            block.timestamp > eventConfig.onlineDate || eventConfig.onlineDate > eventConfig.noRefundDate
-                || eventConfig.noRefundDate > eventConfig.offlineDate
+            eventConfig
+                // eventConfig.onlineDate > eventConfig.noRefundDate ||
+                // block.timestamp >= eventConfig.onlineDate ||
+                .noRefundDate > eventConfig.offlineDate
         ) revert InvalidInputs();
 
         _eventConfig = eventConfig;
@@ -401,10 +403,10 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
     {
         if (_eventCanceled) revert EventCanceled();
 
-        // revert if trying to transfer inside of contract when event has not started
-        if (_internalTransfer && block.timestamp < _eventConfig.onlineDate) {
-            revert EventNotOnline();
-        }
+        // // revert if trying to transfer inside of contract when event has not started
+        // if (_internalTransfer && block.timestamp < _eventConfig.onlineDate) {
+        //     revert EventNotOnline();
+        // }
 
         // revert if trying to transfer outside of contract when event has not ended
         if (!_internalTransfer && block.timestamp < _eventConfig.offlineDate) {

@@ -13,7 +13,11 @@ library Structs {
     }
 
     struct EventConfig {
-        uint256 onlineDate;
+        string name;
+        string description;
+        string location;
+        uint256 date;
+        // uint256 onlineDate;
         uint256 offlineDate;
         uint256 noRefundDate;
         Percentage refundPercentage;
