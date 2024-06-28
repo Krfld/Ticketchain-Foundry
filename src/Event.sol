@@ -385,6 +385,12 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
         return _eventCanceled;
     }
 
+    /* ticketsValidated */
+
+    function getTicketsValidated() external view returns (uint256[] memory) {
+        return _ticketsValidated.values();
+    }
+
     /* internal */
 
     function _checkTicketOwner(uint256 ticket) internal view {
