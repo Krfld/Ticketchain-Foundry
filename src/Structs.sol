@@ -23,7 +23,7 @@ library Structs {
         Percentage refundPercentage;
     }
 
-    struct Package {
+    struct PackageConfig {
         string name;
         string description;
         uint256 price;

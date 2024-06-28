@@ -24,7 +24,7 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
     Structs.TicketchainConfig private _ticketchainConfig;
     Structs.NFTConfig private _nftConfig;
     Structs.EventConfig private _eventConfig;
-    Structs.Package[] private _packages;
+    Structs.PackageConfig[] private _packages;
     EnumerableSet.AddressSet private _admins;
     EnumerableSet.AddressSet private _validators;
 
@@ -32,6 +32,7 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
     bool private _internalTransfer;
 
     uint256 private _fees;
+    mapping(uint256 => EnumerableSet.UintSet) private _packageTicketsBought;
     EnumerableSet.UintSet private _ticketsValidated;
 
     /* events */
@@ -70,7 +71,7 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
         address owner,
         Structs.Percentage memory feePercentage,
         Structs.EventConfig memory eventConfig,
-        // Structs.Package[] memory packages,
+        // Structs.PackageConfig[] memory packages,
         Structs.NFTConfig memory nftConfig
     ) Ownable(owner) ERC721(nftConfig.name, nftConfig.symbol) {
         _ticketchainConfig = Structs.TicketchainConfig(_msgSender(), feePercentage);
@@ -131,7 +132,7 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
         payable(owner()).sendValue(profit);
     }
 
-    // function deployTickets(address to, Structs.Package[] memory packages) external onlyAdmins {
+    // function deployTickets(address to, Structs.PackageConfig[] memory packages) external onlyAdmins {
     //     for (uint256 i; i < packages.length; i++) {
     //         uint256 totalSupply = getTicketsSupply();
 
@@ -170,12 +171,15 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
         uint256 totalPrice;
         for (uint256 i; i < tickets.length; i++) {
             uint256 ticket = tickets[i];
+            uint256 packageId = _getTicketPackageId(ticket);
 
             // give ticket to user
             _safeMint(to, ticket);
 
+            _packageTicketsBought[packageId].add(ticket);
+
             // get ticket price
-            uint256 price = getTicketPrice(ticket);
+            uint256 price = _packages[packageId].price;
             totalPrice += price;
 
             // update fees
@@ -208,6 +212,7 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
         uint256 totalPrice;
         for (uint256 i; i < tickets.length; i++) {
             uint256 ticket = tickets[i];
+            uint256 packageId = _getTicketPackageId(ticket);
 
             if (!_eventCanceled) {
                 // check if ticket is validated
@@ -215,13 +220,15 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
 
                 // burn ticket from user
                 _update(address(0), ticket, _msgSender());
+
+                _packageTicketsBought[packageId].remove(ticket);
             }
 
             // calculate refund
             Structs.Percentage memory refundPercentage =
                 !_eventCanceled ? _eventConfig.refundPercentage : Structs.Percentage(100, 0);
 
-            uint256 refundPrice = _getPercentage(getTicketPrice(ticket), refundPercentage);
+            uint256 refundPrice = _getPercentage(_packages[packageId].price, refundPercentage);
             totalPrice += refundPrice;
 
             // update fees
@@ -240,7 +247,7 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
 
     /* tickets */
 
-    function getTicketsSupply() public view returns (uint256) {
+    function getTicketsSupply() external view returns (uint256) {
         uint256 totalSupply;
         for (uint256 i; i < _packages.length; i++) {
             totalSupply += _packages[i].supply;
@@ -248,7 +255,15 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
         return totalSupply;
     }
 
-    function getTicketPackageId(uint256 ticket) public view returns (uint256) {
+    function getPackageTicketsBought(uint256 packageId) external view returns (uint256[] memory) {
+        return _packageTicketsBought[packageId].values();
+    }
+
+    // function _getTicketPrice(uint256 ticket) internal view returns (uint256) {
+    //     return _packages[_getTicketPackageId(ticket)].price;
+    // }
+
+    function _getTicketPackageId(uint256 ticket) internal view returns (uint256) {
         uint256 totalSupply;
         for (uint256 i; i < _packages.length; i++) {
             totalSupply += _packages[i].supply;
@@ -257,14 +272,10 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
         revert TicketDoesNotExist(ticket);
     }
 
-    function getTicketPrice(uint256 ticket) public view returns (uint256) {
-        return _packages[getTicketPackageId(ticket)].price;
-    }
-
     /* NFTs */
 
     function tokenURI(uint256 ticket) public view override returns (string memory) {
-        uint256 packageId = getTicketPackageId(ticket);
+        uint256 packageId = _getTicketPackageId(ticket);
 
         string memory ticketPath = !_packages[packageId].individualNfts ? "" : string.concat("/", ticket.toString());
 
@@ -304,21 +315,21 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
 
     /* packages */
 
-    // function setPackages(Structs.Package[] memory packages) internal {
+    // function setPackageConfigs(Structs.PackageConfig[] memory packages) internal {
     //     if (packages.length == 0) revert InvalidInputs();
 
     //     _packages = packages;
     // }
 
-    function addPackage(Structs.Package memory package) external onlyAdmins {
+    function addPackageConfig(Structs.PackageConfig memory package) external onlyAdmins {
         _packages.push(package);
     }
 
-    function getTicketPackage(uint256 ticket) external view returns (Structs.Package memory) {
-        return _packages[getTicketPackageId(ticket)];
+    function getTicketPackageConfig(uint256 ticket) external view returns (Structs.PackageConfig memory) {
+        return _packages[_getTicketPackageId(ticket)];
     }
 
-    function getPackages() external view returns (Structs.Package[] memory) {
+    function getPackageConfigs() external view returns (Structs.PackageConfig[] memory) {
         return _packages;
     }
 

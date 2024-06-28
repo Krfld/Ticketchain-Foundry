@@ -6,7 +6,7 @@ import "../src/Ticketchain.sol";
 import "../src/Event.sol";
 import "../src/Structs.sol";
 
-// forge script script/Ticketchain.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv
+// forge script script/Ticketchain.s.sol --rpc-url $RPC_URL --verify -vvvv --broadcast
 
 contract TicketchainScript is Script {
     Ticketchain private _ticketchain;
@@ -18,11 +18,19 @@ contract TicketchainScript is Script {
         console.log("publicKey", publicKey);
 
         vm.startBroadcast(privateKey);
-
-        _ticketchain = new Ticketchain();
     }
 
-    function _deployEvent1() private {
+    function run() public {
+        // _ticketchain = Ticketchain(0x19C09e44585865a7CC860fAe71C0D7420A317e14);
+        console.log("ticketchain", address(_ticketchain));
+
+        // _ticketchain.addOrganizer(publicKey);
+        // _buyTickets(_deployEvent1(), _deployEvent2());
+
+        vm.stopBroadcast();
+    }
+
+    function _deployEvent1() private returns (address) {
         address eventAddress = _ticketchain.registerEvent(
             Structs.EventConfig(
                 "Event 1",
@@ -34,18 +42,25 @@ contract TicketchainScript is Script {
                 1727737200,
                 Structs.Percentage(50, 0)
             ),
-            Structs.NFTConfig("Event 1 NFT", "E1", "https://baseURI.com/")
+            Structs.NFTConfig("Event 1 NFT", "E1", "https://baseURI_1.com/")
         );
-        // console.log("eventAddress", eventAddress);
 
         Event _event = Event(eventAddress);
 
-        _event.addPackage(Structs.Package("Package 1", "Package 1 description", 100, 100, false));
-        _event.addPackage(Structs.Package("Package 2", "Package 2 description", 200, 200, true));
-        _event.addPackage(Structs.Package("Package 3", "Package 3 description", 300, 300, false));
+        _event.addPackageConfig(
+            Structs.PackageConfig("Event 1 package 1", "Event 1 package 1 description", 100, 100, false)
+        );
+        _event.addPackageConfig(
+            Structs.PackageConfig("Event 1 package 2", "Event 1 package 2 description", 200, 200, true)
+        );
+        _event.addPackageConfig(
+            Structs.PackageConfig("Event 1 package 3", "Event 1 package 3 description", 300, 300, false)
+        );
+
+        return eventAddress;
     }
 
-    function _deployEvent2() private {
+    function _deployEvent2() private returns (address) {
         address eventAddress = _ticketchain.registerEvent(
             Structs.EventConfig(
                 "Event 2",
@@ -57,25 +72,62 @@ contract TicketchainScript is Script {
                 1711926000,
                 Structs.Percentage(0, 0)
             ),
-            Structs.NFTConfig("Event 2 NFT", "E2", "https://baseURI.com/")
+            Structs.NFTConfig("Event 2 NFT", "E2", "https://baseURI_2.com/")
         );
-        // console.log("eventAddress", eventAddress);
 
         Event _event = Event(eventAddress);
 
-        _event.addPackage(Structs.Package("Package 1", "Package 1 description", 100, 100, false));
-        _event.addPackage(Structs.Package("Package 2", "Package 2 description", 200, 200, true));
-        _event.addPackage(Structs.Package("Package 3", "Package 3 description", 300, 300, false));
+        _event.addPackageConfig(
+            Structs.PackageConfig("Event 2 package 1", "Event 2 package 1 description", 100, 100, true)
+        );
+        _event.addPackageConfig(
+            Structs.PackageConfig("Event 2 package 2", "Event 2 package 2 description", 200, 200, false)
+        );
+
+        return eventAddress;
     }
 
-    function run() public {
-        // console.log("ticketchain", address(ticketchain));
+    function _deployEvent3() private returns (address) {
+        address eventAddress = _ticketchain.registerEvent(
+            Structs.EventConfig(
+                "Event 3",
+                "Event 3 description",
+                "Event 3 location",
+                1722466800,
+                // 1704067200,
+                1719788400,
+                1711926000,
+                Structs.Percentage(100, 0)
+            ),
+            Structs.NFTConfig("Event 3 NFT", "E3", "https://baseURI_3.com/")
+        );
 
-        _ticketchain.addOrganizer(publicKey);
+        Event _event = Event(eventAddress);
 
-        _deployEvent1();
-        _deployEvent2();
+        _event.addPackageConfig(
+            Structs.PackageConfig("Event 3 package 1", "Event 3 package 1 description", 100, 100, true)
+        );
 
-        vm.stopBroadcast();
+        return eventAddress;
+    }
+
+    function _buyTickets(address event1, address event2) private {
+        Event _event1 = Event(event1);
+        Event _event2 = Event(event2);
+
+        uint256[] memory tickets1 = new uint256[](5);
+        tickets1[0] = 0;
+        tickets1[1] = 1;
+        tickets1[2] = 100;
+        tickets1[3] = 300;
+        tickets1[4] = 599;
+
+        uint256[] memory tickets2 = new uint256[](3);
+        tickets2[0] = 0;
+        tickets2[1] = 150;
+        tickets2[2] = 299;
+
+        _event1.buyTickets{value: 1000}(publicKey, tickets1);
+        _event2.buyTickets{value: 500}(publicKey, tickets2);
     }
 }
