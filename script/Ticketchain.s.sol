@@ -26,7 +26,8 @@ contract TicketchainScript is Script {
 
         _ticketchain.addOrganizer(publicKey);
 
-        _buyTickets(_deployEvent1(), _deployEvent2());
+        _deployEvent1();
+        _deployEvent2();
         _deployEvent3();
 
         vm.stopBroadcast();
@@ -50,13 +51,13 @@ contract TicketchainScript is Script {
         Event _event = Event(eventAddress);
 
         _event.addPackageConfig(
-            Structs.PackageConfig("<Event 1 package 1>", "<Event 1 package 1 description>", 100, 100, false)
+            Structs.PackageConfig("<Event 1 package 1>", "<Event 1 package 1 description>", 0.01 ether, 100, false)
         );
         _event.addPackageConfig(
-            Structs.PackageConfig("<Event 1 package 2>", "<Event 1 package 2 description>", 200, 200, true)
+            Structs.PackageConfig("<Event 1 package 2>", "<Event 1 package 2 description>", 0.05 ether, 200, true)
         );
         _event.addPackageConfig(
-            Structs.PackageConfig("<Event 1 package 3>", "<Event 1 package 3 description>", 300, 300, false)
+            Structs.PackageConfig("<Event 1 package 3>", "<Event 1 package 3 description>", 0.1 ether, 300, false)
         );
 
         return eventAddress;
@@ -80,10 +81,10 @@ contract TicketchainScript is Script {
         Event _event = Event(eventAddress);
 
         _event.addPackageConfig(
-            Structs.PackageConfig("<Event 2 package 1>", "<Event 2 package 1 description>", 100, 100, true)
+            Structs.PackageConfig("<Event 2 package 1>", "<Event 2 package 1 description>", 0.01 ether, 100, true)
         );
         _event.addPackageConfig(
-            Structs.PackageConfig("<Event 2 package 2>", "<Event 2 package 2 description>", 200, 200, false)
+            Structs.PackageConfig("<Event 2 package 2>", "<Event 2 package 2 description>", 0.1 ether, 200, false)
         );
 
         return eventAddress;
@@ -107,29 +108,29 @@ contract TicketchainScript is Script {
         Event _event = Event(eventAddress);
 
         _event.addPackageConfig(
-            Structs.PackageConfig("<Event 3 package 1>", "<Event 3 package 1 description>", 100, 100, true)
+            Structs.PackageConfig("<Event 3 package 1>", "<Event 3 package 1 description>", 0.01 ether, 100, true)
         );
 
         return eventAddress;
     }
 
-    function _buyTickets(address event1, address event2) private {
-        Event _event1 = Event(event1);
-        Event _event2 = Event(event2);
+    // function _buyTickets(address event1, address event2) private {
+    //     Event _event1 = Event(event1);
+    //     Event _event2 = Event(event2);
 
-        uint256[] memory tickets1 = new uint256[](5);
-        tickets1[0] = 0;
-        tickets1[1] = 1;
-        tickets1[2] = 100;
-        tickets1[3] = 300;
-        tickets1[4] = 599;
+    //     uint256[] memory tickets1 = new uint256[](5);
+    //     tickets1[0] = 0;
+    //     tickets1[1] = 1;
+    //     tickets1[2] = 100;
+    //     tickets1[3] = 300;
+    //     tickets1[4] = 599;
 
-        uint256[] memory tickets2 = new uint256[](3);
-        tickets2[0] = 0;
-        tickets2[1] = 150;
-        tickets2[2] = 299;
+    //     uint256[] memory tickets2 = new uint256[](3);
+    //     tickets2[0] = 0;
+    //     tickets2[1] = 150;
+    //     tickets2[2] = 299;
 
-        _event1.buyTickets{value: 1000}(publicKey, tickets1);
-        _event2.buyTickets{value: 500}(publicKey, tickets2);
-    }
+    //     // _event1.buyTickets{value: 1000}(publicKey, tickets1);
+    //     // _event2.buyTickets{value: 500}(publicKey, tickets2);
+    // }
 }

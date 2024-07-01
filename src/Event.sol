@@ -152,12 +152,15 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
 
     /* validator */
 
-    function validateTickets(uint256[] memory tickets) external checkValidator(_msgSender()) {
+    function validateTickets(uint256[] memory tickets, address owner) external checkValidator(_msgSender()) {
         for (uint256 i; i < tickets.length; i++) {
             uint256 ticket = tickets[i];
 
             // check if ticket is validated
             _checkTicketValidated(ticket);
+
+            // check if ticket belongs to user
+            if (ownerOf(ticket) != owner) revert UserNotTicketOwner(owner, ticket);
 
             _ticketsValidated.add(ticket);
 
