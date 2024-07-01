@@ -6,7 +6,7 @@ import "../src/Ticketchain.sol";
 import "../src/Event.sol";
 import "../src/Structs.sol";
 
-// forge script script/Ticketchain.s.sol --rpc-url $RPC_URL --verify -vvvv --broadcast
+// source .env && forge script script/Ticketchain.s.sol --rpc-url $RPC_URL --verify -vvvv --broadcast
 
 contract TicketchainScript is Script {
     Ticketchain private _ticketchain;
@@ -60,6 +60,11 @@ contract TicketchainScript is Script {
             Structs.PackageConfig("<Event 1 package 3>", "<Event 1 package 3 description>", 0.1 ether, 300, false)
         );
 
+        address[] memory validator = new address[](1);
+        validator[0] = address(0xF1c604490a371258f9EA577D787d005B632A5885);
+
+        _event.addValidators(validator);
+
         return eventAddress;
     }
 
@@ -87,6 +92,11 @@ contract TicketchainScript is Script {
             Structs.PackageConfig("<Event 2 package 2>", "<Event 2 package 2 description>", 0.1 ether, 200, false)
         );
 
+        address[] memory validator = new address[](1);
+        validator[0] = address(0xF1c604490a371258f9EA577D787d005B632A5885);
+
+        _event.addValidators(validator);
+
         return eventAddress;
     }
 
@@ -110,6 +120,11 @@ contract TicketchainScript is Script {
         _event.addPackageConfig(
             Structs.PackageConfig("<Event 3 package 1>", "<Event 3 package 1 description>", 0.01 ether, 100, true)
         );
+
+        address[] memory validator = new address[](1);
+        validator[0] = address(0xF1c604490a371258f9EA577D787d005B632A5885);
+
+        _event.addValidators(validator);
 
         return eventAddress;
     }
