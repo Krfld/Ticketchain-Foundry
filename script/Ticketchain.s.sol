@@ -24,11 +24,11 @@ contract TicketchainScript is Script {
         _ticketchain = new Ticketchain();
         console.log("ticketchain", address(_ticketchain));
 
-        _ticketchain.addOrganizer(publicKey);
+        // _ticketchain.addOrganizer(publicKey);
 
-        _deployEvent1();
-        _deployEvent2();
-        _deployEvent3();
+        // _deployEvent1();
+        // _deployEvent2();
+        // _deployEvent3();
 
         vm.stopBroadcast();
     }
@@ -51,13 +51,13 @@ contract TicketchainScript is Script {
         Event _event = Event(eventAddress);
 
         _event.addPackageConfig(
-            Structs.PackageConfig("<Event 1 package 1>", "<Event 1 package 1 description>", 0.01 ether, 100, false)
+            Structs.PackageConfig("<Event 1 package 1>", "<Event 1 package 1 description>", 0.001 ether, 100, false)
         );
         _event.addPackageConfig(
-            Structs.PackageConfig("<Event 1 package 2>", "<Event 1 package 2 description>", 0.05 ether, 200, true)
+            Structs.PackageConfig("<Event 1 package 2>", "<Event 1 package 2 description>", 0.005 ether, 200, true)
         );
         _event.addPackageConfig(
-            Structs.PackageConfig("<Event 1 package 3>", "<Event 1 package 3 description>", 0.1 ether, 300, false)
+            Structs.PackageConfig("<Event 1 package 3>", "<Event 1 package 3 description>", 0.01 ether, 300, false)
         );
 
         address[] memory validator = new address[](1);
@@ -86,10 +86,10 @@ contract TicketchainScript is Script {
         Event _event = Event(eventAddress);
 
         _event.addPackageConfig(
-            Structs.PackageConfig("<Event 2 package 1>", "<Event 2 package 1 description>", 0.01 ether, 100, true)
+            Structs.PackageConfig("<Event 2 package 1>", "<Event 2 package 1 description>", 0.001 ether, 100, true)
         );
         _event.addPackageConfig(
-            Structs.PackageConfig("<Event 2 package 2>", "<Event 2 package 2 description>", 0.1 ether, 200, false)
+            Structs.PackageConfig("<Event 2 package 2>", "<Event 2 package 2 description>", 0.01 ether, 200, false)
         );
 
         address[] memory validator = new address[](1);
@@ -118,7 +118,7 @@ contract TicketchainScript is Script {
         Event _event = Event(eventAddress);
 
         _event.addPackageConfig(
-            Structs.PackageConfig("<Event 3 package 1>", "<Event 3 package 1 description>", 0.01 ether, 100, true)
+            Structs.PackageConfig("<Event 3 package 1>", "<Event 3 package 1 description>", 0.001 ether, 100, true)
         );
 
         address[] memory validator = new address[](1);
