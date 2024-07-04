@@ -282,7 +282,7 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
 
         string memory ticketPath = !_packages[packageId].individualNfts ? "" : string.concat("/", ticket.toString());
 
-        return string.concat(_baseURI(), packageId.toString(), ticketPath, ".json");
+        return string.concat(_baseURI(), packageId.toString(), ticketPath);
     }
 
     function _baseURI() internal view override returns (string memory) {

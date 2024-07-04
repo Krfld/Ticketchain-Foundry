@@ -24,11 +24,11 @@ contract TicketchainScript is Script {
         _ticketchain = new Ticketchain();
         console.log("ticketchain", address(_ticketchain));
 
-        // _ticketchain.addOrganizer(publicKey);
+        _ticketchain.addOrganizer(publicKey);
 
-        // _deployEvent1();
-        // _deployEvent2();
-        // _deployEvent3();
+        _deployEvent1();
+        _deployEvent2();
+        _deployEvent3();
 
         vm.stopBroadcast();
     }
@@ -36,29 +36,25 @@ contract TicketchainScript is Script {
     function _deployEvent1() private returns (address) {
         address eventAddress = _ticketchain.registerEvent(
             Structs.EventConfig(
-                "<Event 1>",
-                "<Event 1 description>",
-                "<Event 1 location>",
+                "NOS Alive",
+                "NOS Alive is one of the biggest music festivals in Portugal. The festival features a mix of rock, indie, and electronic music, with performances from both established and up-and-coming artists.",
+                "Passeio Maritimo de Alges, Portugal",
                 1733011200,
                 // 1704067200,
                 1735603200,
                 1727737200,
                 Structs.Percentage(50, 0)
             ),
-            Structs.NFTConfig("<Event 1 NFT>", "<E1>", "<https://baseURI_1.com/>")
+            Structs.NFTConfig(
+                "NOS Alive NFT", "NOSA", "https://ipfs.io/ipfs/Qmaayxv9D5u4C6AXZLfMh4wC7LKiw2oiKpB36u8yxcasTM/"
+            )
         );
 
         Event _event = Event(eventAddress);
 
-        _event.addPackageConfig(
-            Structs.PackageConfig("<Event 1 package 1>", "<Event 1 package 1 description>", 0.001 ether, 100, false)
-        );
-        _event.addPackageConfig(
-            Structs.PackageConfig("<Event 1 package 2>", "<Event 1 package 2 description>", 0.005 ether, 200, true)
-        );
-        _event.addPackageConfig(
-            Structs.PackageConfig("<Event 1 package 3>", "<Event 1 package 3 description>", 0.01 ether, 300, false)
-        );
+        _event.addPackageConfig(Structs.PackageConfig("Normal package", "Normal tickets", 0.001 ether, 100, false));
+        _event.addPackageConfig(Structs.PackageConfig("VIP package", "VIP tickets", 0.005 ether, 200, false));
+        _event.addPackageConfig(Structs.PackageConfig("Premium package", "Premium tickets", 0.01 ether, 300, false));
 
         address[] memory validator = new address[](1);
         validator[0] = address(0xF1c604490a371258f9EA577D787d005B632A5885);
@@ -71,26 +67,24 @@ contract TicketchainScript is Script {
     function _deployEvent2() private returns (address) {
         address eventAddress = _ticketchain.registerEvent(
             Structs.EventConfig(
-                "<Event 2>",
-                "<Event 2 description>",
-                "<Event 2 location>",
+                "Sumol Summer Fest",
+                "This beach festival is all about good vibes, summer fun, and electronic music. It takes place on the Praia da Rocha beach in Algarve, a stunning location known for its golden sands and dramatic cliffs.",
+                "Praia da Rocha, Algarve, Portugal",
                 1717196400,
                 // 1704067200,
                 1719702000,
                 1711926000,
                 Structs.Percentage(0, 0)
             ),
-            Structs.NFTConfig("<Event 2 NFT>", "<E2>", "<https://baseURI_2.com/>")
+            Structs.NFTConfig(
+                "Sumol Summer Fest NFT", "SSF", "https://ipfs.io/ipfs/Qmaayxv9D5u4C6AXZLfMh4wC7LKiw2oiKpB36u8yxcasTM/"
+            )
         );
 
         Event _event = Event(eventAddress);
 
-        _event.addPackageConfig(
-            Structs.PackageConfig("<Event 2 package 1>", "<Event 2 package 1 description>", 0.001 ether, 100, true)
-        );
-        _event.addPackageConfig(
-            Structs.PackageConfig("<Event 2 package 2>", "<Event 2 package 2 description>", 0.01 ether, 200, false)
-        );
+        _event.addPackageConfig(Structs.PackageConfig("Normal package", "Normal tickets", 0.001 ether, 100, false));
+        _event.addPackageConfig(Structs.PackageConfig("VIP package", "VIP tickets", 0.01 ether, 200, false));
 
         address[] memory validator = new address[](1);
         validator[0] = address(0xF1c604490a371258f9EA577D787d005B632A5885);
@@ -103,23 +97,23 @@ contract TicketchainScript is Script {
     function _deployEvent3() private returns (address) {
         address eventAddress = _ticketchain.registerEvent(
             Structs.EventConfig(
-                "<Event 3>",
-                "<Event 3 description>",
-                "<Event 3 location>",
+                "RFM SOMNII",
+                "This massive electronic music festival is a major highlight of the Portuguese summer. The festival features renowned DJs, along with stunning visuals, pyrotechnics, and a vibrant party atmosphere.",
+                "Praia da Vieira, Leiria, Portugal",
                 1722466800,
                 // 1704067200,
                 1719788400,
                 1711926000,
                 Structs.Percentage(100, 0)
             ),
-            Structs.NFTConfig("<Event 3 NFT>", "<E3>", "<https://baseURI_3.com/>")
+            Structs.NFTConfig(
+                "RFM SOMNII NFT", "RFMS", "https://ipfs.io/ipfs/Qmaayxv9D5u4C6AXZLfMh4wC7LKiw2oiKpB36u8yxcasTM/"
+            )
         );
 
         Event _event = Event(eventAddress);
 
-        _event.addPackageConfig(
-            Structs.PackageConfig("<Event 3 package 1>", "<Event 3 package 1 description>", 0.001 ether, 100, true)
-        );
+        _event.addPackageConfig(Structs.PackageConfig("Normal package", "Normal tickets", 0.001 ether, 100, false));
 
         address[] memory validator = new address[](1);
         validator[0] = address(0xF1c604490a371258f9EA577D787d005B632A5885);
