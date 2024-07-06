@@ -37,7 +37,7 @@ contract TicketchainScript is Script {
         address eventAddress = _ticketchain.registerEvent(
             Structs.EventConfig(
                 "NOS Alive",
-                "NOS Alive is one of the biggest music festivals in Portugal. The festival features a mix of rock, indie, and electronic music, with performances from both established and up-and-coming artists.",
+                "NOS Alive features performances from both established and up-and-coming artists.",
                 "Passeio Maritimo de Alges, Portugal",
                 1717196400, // 1 jun 24
                 1730332800, // 31 oct 24
@@ -68,7 +68,7 @@ contract TicketchainScript is Script {
         address eventAddress = _ticketchain.registerEvent(
             Structs.EventConfig(
                 "Sumol Summer Fest",
-                "This beach festival is all about good vibes, summer fun, and electronic music. It takes place on the Praia da Rocha beach in Algarve, a stunning location known for its golden sands and dramatic cliffs.",
+                "This beach festival is all about good vibes, summer fun, and electronic music.",
                 "Praia da Rocha, Algarve, Portugal",
                 1717196400, // 1 jun 24
                 1727737200, // 1 oct 24
@@ -98,7 +98,7 @@ contract TicketchainScript is Script {
         address eventAddress = _ticketchain.registerEvent(
             Structs.EventConfig(
                 "RFM SOMNII",
-                "This massive electronic music festival is a major highlight of the Portuguese summer. The festival features renowned DJs, along with stunning visuals, pyrotechnics, and a vibrant party atmosphere.",
+                "This electronic music festival features renowned DJs, along with stunning visuals and a vibrant atmosphere.",
                 "Praia da Vieira, Leiria, Portugal",
                 1722466800, // 1 aug 24
                 1730332800, // 31 oct 24
