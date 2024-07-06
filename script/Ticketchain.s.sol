@@ -39,10 +39,10 @@ contract TicketchainScript is Script {
                 "NOS Alive",
                 "NOS Alive is one of the biggest music festivals in Portugal. The festival features a mix of rock, indie, and electronic music, with performances from both established and up-and-coming artists.",
                 "Passeio Maritimo de Alges, Portugal",
-                1733011200,
-                // 1704067200,
-                1735603200,
-                1727737200,
+                1717196400, // 1 jun 24
+                1730332800, // 31 oct 24
+                1733011200, // 1 dec 24
+                1735603200, // 31 dec 24
                 Structs.Percentage(50, 0)
             ),
             Structs.NFTConfig(
@@ -70,10 +70,10 @@ contract TicketchainScript is Script {
                 "Sumol Summer Fest",
                 "This beach festival is all about good vibes, summer fun, and electronic music. It takes place on the Praia da Rocha beach in Algarve, a stunning location known for its golden sands and dramatic cliffs.",
                 "Praia da Rocha, Algarve, Portugal",
-                1717196400,
-                // 1704067200,
-                1719702000,
-                1711926000,
+                1717196400, // 1 jun 24
+                1727737200, // 1 oct 24
+                1734220800, // 15 dec 24
+                1735603200, // 31 dec 24
                 Structs.Percentage(0, 0)
             ),
             Structs.NFTConfig(
@@ -100,10 +100,10 @@ contract TicketchainScript is Script {
                 "RFM SOMNII",
                 "This massive electronic music festival is a major highlight of the Portuguese summer. The festival features renowned DJs, along with stunning visuals, pyrotechnics, and a vibrant party atmosphere.",
                 "Praia da Vieira, Leiria, Portugal",
-                1722466800,
-                // 1704067200,
-                1719788400,
-                1711926000,
+                1722466800, // 1 aug 24
+                1730332800, // 31 oct 24
+                1734739200, // 21 dec 24
+                1735603200, // 31 dec 24
                 Structs.Percentage(100, 0)
             ),
             Structs.NFTConfig(

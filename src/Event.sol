@@ -54,7 +54,7 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
 
     error EventNotOnline();
     // error EventOnline();
-    error EventNotOffline();
+    error EventOngoing();
     error EventOffline();
     error NoRefund();
     error EventCanceled();
@@ -111,7 +111,7 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
 
     function withdrawFees() external onlyTicketchain {
         if (block.timestamp < _eventConfig.offlineDate) {
-            revert EventNotOffline();
+            revert EventOngoing();
         }
 
         if (_fees == 0) revert NothingToWithdraw();
@@ -124,7 +124,7 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
 
     function withdrawProfit() external onlyAdmins {
         if (block.timestamp < _eventConfig.offlineDate) {
-            revert EventNotOffline();
+            revert EventOngoing();
         }
 
         uint256 profit = address(this).balance - _fees;
@@ -304,9 +304,8 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
     function _setEventConfig(Structs.EventConfig memory eventConfig) internal {
         if (
             eventConfig
-                // eventConfig.onlineDate > eventConfig.noRefundDate ||
-                // block.timestamp >= eventConfig.onlineDate ||
-                .noRefundDate > eventConfig.offlineDate
+                // block.timestamp >= eventConfig.onlineDate || // commented out to allow testing buy tickets
+                .onlineDate > eventConfig.noRefundDate || eventConfig.noRefundDate > eventConfig.offlineDate
         ) revert InvalidInputs();
 
         _eventConfig = eventConfig;
@@ -423,20 +422,14 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
     {
         if (_eventCanceled) revert EventCanceled();
 
-        // // revert if trying to transfer inside of contract when event has not started
-        // if (_internalTransfer && block.timestamp < _eventConfig.onlineDate) {
-        //     revert EventNotOnline();
-        // }
+        // revert if trying to transfer inside of contract when event is not online
+        if (_internalTransfer && block.timestamp < _eventConfig.onlineDate) revert EventNotOnline();
 
-        // revert if trying to transfer outside of contract when event has not ended
-        if (!_internalTransfer && block.timestamp < _eventConfig.offlineDate) {
-            revert EventNotOffline();
-        }
+        // revert if trying to transfer outside of contract when event is ongoing
+        if (!_internalTransfer && block.timestamp < _eventConfig.offlineDate) revert EventOngoing();
 
         // revert if trying to transfer inside of contract when event has ended
-        if (_internalTransfer && block.timestamp >= _eventConfig.offlineDate) {
-            revert EventOffline();
-        }
+        if (_internalTransfer && block.timestamp >= _eventConfig.offlineDate) revert EventOffline();
 
         return super._update(to, tokenId, auth);
     }

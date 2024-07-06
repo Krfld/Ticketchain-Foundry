@@ -16,10 +16,10 @@ library Structs {
         string name;
         string description;
         string location;
-        uint256 date;
-        // uint256 onlineDate;
-        uint256 offlineDate;
+        uint256 onlineDate;
         uint256 noRefundDate;
+        uint256 date;
+        uint256 offlineDate;
         Percentage refundPercentage;
     }
 
