@@ -19,6 +19,15 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
 
     /* types */
 
+    // enum EventState {
+    //     Online,
+    //     Offline,
+    //     Open,
+    //     Closed,
+    //     Started,
+    //     Ended
+    // }
+
     /* variables */
 
     Structs.TicketchainConfig private _ticketchainConfig;
@@ -52,10 +61,9 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
     error NothingToWithdraw();
     error InvalidInputs();
 
-    error EventNotOnline();
-    // error EventOnline();
     error EventOngoing();
-    error EventOffline();
+    error EventNotOpen();
+    error EventEnded();
     error NoRefund();
     error EventCanceled();
 
@@ -110,9 +118,8 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
     /* ticketchain */
 
     function withdrawFees() external onlyTicketchain {
-        if (block.timestamp < _eventConfig.offlineDate) {
-            revert EventOngoing();
-        }
+        if (_eventCanceled) revert EventCanceled();
+        if (block.timestamp < _eventConfig.endDate) revert EventOngoing();
 
         if (_fees == 0) revert NothingToWithdraw();
         uint256 fees = _fees;
@@ -123,9 +130,8 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
     /* admins */
 
     function withdrawProfit() external onlyAdmins {
-        if (block.timestamp < _eventConfig.offlineDate) {
-            revert EventOngoing();
-        }
+        if (_eventCanceled) revert EventCanceled();
+        if (block.timestamp < _eventConfig.endDate) revert EventOngoing();
 
         uint256 profit = address(this).balance - _fees;
         if (profit == 0) revert NothingToWithdraw();
@@ -145,6 +151,8 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
     // }
 
     function cancelEvent() external onlyAdmins {
+        if (block.timestamp >= _eventConfig.endDate) revert EventEnded();
+
         _eventCanceled = true;
 
         emit CancelEvent();
@@ -305,7 +313,7 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
         if (
             eventConfig
                 // block.timestamp >= eventConfig.onlineDate || // commented out to allow testing buy tickets
-                .onlineDate > eventConfig.noRefundDate || eventConfig.noRefundDate > eventConfig.offlineDate
+                .openDate > eventConfig.noRefundDate || eventConfig.noRefundDate > eventConfig.endDate
         ) revert InvalidInputs();
 
         _eventConfig = eventConfig;
@@ -422,14 +430,15 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
     {
         if (_eventCanceled) revert EventCanceled();
 
-        // revert if trying to transfer inside of contract when event is not online
-        if (_internalTransfer && block.timestamp < _eventConfig.onlineDate) revert EventNotOnline();
-
-        // revert if trying to transfer outside of contract when event is ongoing
-        if (!_internalTransfer && block.timestamp < _eventConfig.offlineDate) revert EventOngoing();
-
-        // revert if trying to transfer inside of contract when event has ended
-        if (_internalTransfer && block.timestamp >= _eventConfig.offlineDate) revert EventOffline();
+        if (_internalTransfer) {
+            if (block.timestamp < _eventConfig.openDate) {
+                revert EventNotOpen();
+            } else if (block.timestamp >= _eventConfig.endDate) {
+                revert EventEnded();
+            }
+        } else if (block.timestamp < _eventConfig.endDate) {
+            revert EventOngoing();
+        }
 
         return super._update(to, tokenId, auth);
     }
