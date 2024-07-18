@@ -11,7 +11,7 @@ import "@openzeppelin/token/ERC721/extensions/ERC721Enumerable.sol";
 
 import "./Structs.sol";
 
-contract Event is Ownable, ERC721, ERC721Enumerable {
+contract Event is Ownable, ERC721 {
     using Strings for uint256;
     using Address for address payable;
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -423,11 +423,7 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
 
     /* overrides */
 
-    function _update(address to, uint256 tokenId, address auth)
-        internal
-        override(ERC721, ERC721Enumerable)
-        returns (address)
-    {
+    function _update(address to, uint256 tokenId, address auth) internal override returns (address) {
         if (_eventCanceled) revert EventCanceled();
 
         if (_internalTransfer) {
@@ -441,13 +437,5 @@ contract Event is Ownable, ERC721, ERC721Enumerable {
         }
 
         return super._update(to, tokenId, auth);
-    }
-
-    function _increaseBalance(address account, uint128 value) internal override(ERC721, ERC721Enumerable) {
-        super._increaseBalance(account, value);
-    }
-
-    function supportsInterface(bytes4 interfaceId) public view override(ERC721, ERC721Enumerable) returns (bool) {
-        return super.supportsInterface(interfaceId);
     }
 }

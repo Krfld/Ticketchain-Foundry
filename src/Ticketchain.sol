@@ -62,7 +62,7 @@ contract Ticketchain is Ownable(msg.sender) {
         return eventAddress;
     }
 
-    /* organizers */
+    /* owner */
 
     function addOrganizer(address organizer) external onlyOwner {
         _organizers.add(organizer);
