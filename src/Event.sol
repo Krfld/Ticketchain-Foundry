@@ -31,9 +31,9 @@ contract Event is Ownable, ERC721 {
     /* variables */
 
     Structs.TicketchainConfig private _ticketchainConfig;
-    Structs.NFTConfig private _nftConfig;
     Structs.EventConfig private _eventConfig;
-    Structs.PackageConfig[] private _packages;
+    Structs.NFTConfig private _nftConfig;
+    Structs.PackageConfig[] private _packageConfigs;
     EnumerableSet.AddressSet private _admins;
     EnumerableSet.AddressSet private _validators;
 
@@ -61,9 +61,10 @@ contract Event is Ownable, ERC721 {
     error NothingToWithdraw();
     error InvalidInputs();
 
-    error EventOngoing();
-    error EventNotOpen();
+    error EventOpened();
+    error EventNotOpened();
     error EventEnded();
+    error EventNotEnded();
     error NoRefund();
     error EventCanceled();
 
@@ -79,33 +80,27 @@ contract Event is Ownable, ERC721 {
         address owner,
         Structs.Percentage memory feePercentage,
         Structs.EventConfig memory eventConfig,
-        // Structs.PackageConfig[] memory packages,
         Structs.NFTConfig memory nftConfig
     ) Ownable(owner) ERC721(nftConfig.name, nftConfig.symbol) {
         _ticketchainConfig = Structs.TicketchainConfig(_msgSender(), feePercentage);
         _setEventConfig(eventConfig);
-        // _packages = packages; //! change back
         _nftConfig = nftConfig;
     }
 
     /* modifiers */
 
     modifier onlyTicketchain() {
-        if (_msgSender() != _ticketchainConfig.ticketchainAddress) {
-            revert NotTicketchain();
-        }
+        if (_msgSender() != _ticketchainConfig.ticketchainAddress) revert NotTicketchain();
         _;
     }
 
     modifier onlyAdmins() {
-        if (!_admins.contains(_msgSender()) && _msgSender() != owner()) {
-            revert NotAdmin();
-        }
+        if (!_admins.contains(_msgSender()) && _msgSender() != owner()) revert NotAdmin();
         _;
     }
 
-    modifier checkValidator(address validator) {
-        if (!_validators.contains(validator)) revert NotValidator(validator);
+    modifier onlyValidators() {
+        if (!_validators.contains(_msgSender())) revert NotValidator(_msgSender());
         _;
     }
 
@@ -119,7 +114,7 @@ contract Event is Ownable, ERC721 {
 
     function withdrawFees() external onlyTicketchain {
         if (_eventCanceled) revert EventCanceled();
-        if (block.timestamp < _eventConfig.endDate) revert EventOngoing();
+        if (block.timestamp < _eventConfig.endDate) revert EventOpened();
 
         if (_fees == 0) revert NothingToWithdraw();
         uint256 fees = _fees;
@@ -131,7 +126,7 @@ contract Event is Ownable, ERC721 {
 
     function withdrawProfit() external onlyAdmins {
         if (_eventCanceled) revert EventCanceled();
-        if (block.timestamp < _eventConfig.endDate) revert EventOngoing();
+        if (block.timestamp < _eventConfig.endDate) revert EventOpened();
 
         uint256 profit = address(this).balance - _fees;
         if (profit == 0) revert NothingToWithdraw();
@@ -146,7 +141,7 @@ contract Event is Ownable, ERC721 {
     //             _safeMint(to, totalSupply + j);
     //         }
 
-    //         _packages.push(packages[i]);
+    //         _packageConfigs.push(packages[i]);
     //     }
     // }
 
@@ -160,7 +155,7 @@ contract Event is Ownable, ERC721 {
 
     /* validator */
 
-    function validateTickets(uint256[] memory tickets, address owner) external checkValidator(_msgSender()) {
+    function validateTickets(uint256[] memory tickets, address owner) external onlyValidators {
         for (uint256 i; i < tickets.length; i++) {
             uint256 ticket = tickets[i];
 
@@ -190,7 +185,7 @@ contract Event is Ownable, ERC721 {
             _packageTicketsBought[packageId].add(ticket);
 
             // get ticket price
-            uint256 price = _packages[packageId].price;
+            uint256 price = _packageConfigs[packageId].price;
             totalPrice += price;
 
             // update fees
@@ -239,7 +234,7 @@ contract Event is Ownable, ERC721 {
             Structs.Percentage memory refundPercentage =
                 !_eventCanceled ? _eventConfig.refundPercentage : Structs.Percentage(100, 0);
 
-            uint256 refundPrice = _getPercentage(_packages[packageId].price, refundPercentage);
+            uint256 refundPrice = _getPercentage(_packageConfigs[packageId].price, refundPercentage);
             totalPrice += refundPrice;
 
             // update fees
@@ -260,8 +255,8 @@ contract Event is Ownable, ERC721 {
 
     function getTicketsSupply() external view returns (uint256) {
         uint256 totalSupply;
-        for (uint256 i; i < _packages.length; i++) {
-            totalSupply += _packages[i].supply;
+        for (uint256 i; i < _packageConfigs.length; i++) {
+            totalSupply += _packageConfigs[i].supply;
         }
         return totalSupply;
     }
@@ -270,14 +265,18 @@ contract Event is Ownable, ERC721 {
         return _packageTicketsBought[packageId].values();
     }
 
+    function getTicketsValidated() external view returns (uint256[] memory) {
+        return _ticketsValidated.values();
+    }
+
     // function _getTicketPrice(uint256 ticket) internal view returns (uint256) {
-    //     return _packages[_getTicketPackageId(ticket)].price;
+    //     return _packageConfigs[_getTicketPackageId(ticket)].price;
     // }
 
     function _getTicketPackageId(uint256 ticket) internal view returns (uint256) {
         uint256 totalSupply;
-        for (uint256 i; i < _packages.length; i++) {
-            totalSupply += _packages[i].supply;
+        for (uint256 i; i < _packageConfigs.length; i++) {
+            totalSupply += _packageConfigs[i].supply;
             if (ticket < totalSupply) return i;
         }
         revert TicketDoesNotExist(ticket);
@@ -288,7 +287,8 @@ contract Event is Ownable, ERC721 {
     function tokenURI(uint256 ticket) public view override returns (string memory) {
         uint256 packageId = _getTicketPackageId(ticket);
 
-        string memory ticketPath = !_packages[packageId].individualNfts ? "" : string.concat("/", ticket.toString());
+        string memory ticketPath =
+            !_packageConfigs[packageId].individualNfts ? "" : string.concat("/", ticket.toString());
 
         return string.concat(_baseURI(), packageId.toString(), ticketPath);
     }
@@ -325,22 +325,22 @@ contract Event is Ownable, ERC721 {
 
     /* packages */
 
-    // function setPackageConfigs(Structs.PackageConfig[] memory packages) internal {
-    //     if (packages.length == 0) revert InvalidInputs();
+    function setPackageConfigs(Structs.PackageConfig[] memory packages) external onlyAdmins {
+        if (block.timestamp >= _eventConfig.openDate) revert EventOpened();
 
-    //     _packages = packages;
-    // }
+        _packageConfigs = packages;
+    }
 
     function addPackageConfig(Structs.PackageConfig memory package) external onlyAdmins {
-        _packages.push(package);
+        _packageConfigs.push(package);
     }
 
     function getTicketPackageConfig(uint256 ticket) external view returns (Structs.PackageConfig memory) {
-        return _packages[_getTicketPackageId(ticket)];
+        return _packageConfigs[_getTicketPackageId(ticket)];
     }
 
     function getPackageConfigs() external view returns (Structs.PackageConfig[] memory) {
-        return _packages;
+        return _packageConfigs;
     }
 
     /* nftConfig */
@@ -395,18 +395,10 @@ contract Event is Ownable, ERC721 {
         return _eventCanceled;
     }
 
-    /* ticketsValidated */
-
-    function getTicketsValidated() external view returns (uint256[] memory) {
-        return _ticketsValidated.values();
-    }
-
     /* internal */
 
     function _checkTicketOwner(uint256 ticket) internal view {
-        if (_msgSender() != ownerOf(ticket)) {
-            revert UserNotTicketOwner(_msgSender(), ticket);
-        }
+        if (_msgSender() != ownerOf(ticket)) revert UserNotTicketOwner(_msgSender(), ticket);
     }
 
     function _checkTicketValidated(uint256 ticket) internal view {
@@ -428,12 +420,12 @@ contract Event is Ownable, ERC721 {
 
         if (_internalTransfer) {
             if (block.timestamp < _eventConfig.openDate) {
-                revert EventNotOpen();
+                revert EventNotOpened();
             } else if (block.timestamp >= _eventConfig.endDate) {
                 revert EventEnded();
             }
         } else if (block.timestamp < _eventConfig.endDate) {
-            revert EventOngoing();
+            revert EventNotEnded();
         }
 
         return super._update(to, tokenId, auth);
